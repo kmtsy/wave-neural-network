@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import copy
+from scipy.interpolate import Akima1DInterpolator
 
 # I have a nvidia gpu how about you
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -104,12 +105,12 @@ class EarlyStopping():
 
 # shape of the nn, I know it's probably too much and might cause over fitting, but it works for this data
 input = 5
-hidden_1 = 50
-hidden_2 = 100
-hidden_3 = 100
-hidden_4 = 50
-hidden_5 = 25
-hidden_6 = 10
+hidden_1 = 100
+hidden_2 = 250
+hidden_3 = 500
+hidden_4 = 500
+hidden_5 = 250
+hidden_6 = 100
 output = 1
 
 # creating the nn 
@@ -137,12 +138,13 @@ class MLP_Regression(nn.Module):
 # initializing the model
 wave_nn = MLP_Regression(input, hidden_1, hidden_2, hidden_3, hidden_4, hidden_5, hidden_6, output)
 
+
 # moving the model to the gpu of it's available
 wave_nn.to(device)
 
 # loss function and optimizer
 loss_fn = nn.MSELoss()  # mean square error
-optimizer = optim.Adam(wave_nn.parameters(), lr=0.001,betas=(0.9,0.999)) # adam optimizer, lr is learning rate, betas is momentum params
+optimizer = optim.Adam(wave_nn.parameters(), lr=0.0001,betas=(0.9,0.999)) # adam optimizer, lr is learning rate, betas is momentum params
 
 # initialize the early stopping function
 es = EarlyStopping()
@@ -221,5 +223,31 @@ plt.show()
 plt.figure()
 plt.plot(tloss_history, label = 'testing loss')
 plt.plot(vloss_history, label = 'validation loss')
+plt.legend()
+plt.show()
+
+# getting the model prideicted torque for asuka engine parameters using a much finer rpm step that the model was not trained on
+tm =[]
+rpm_plt = []
+rpm = np.arange(4000, 13000, 10) 
+with torch.inference_mode():
+    for i in range(len(rpm)):
+        
+        if rpm[i]%500 == 0:
+            t = wave_nn(parm[i,:])
+            tm.append(t.cpu())
+            r = rpm[i]
+            rpm_plt.append(r)
+
+# converting from tensors to numpy arrays
+
+ta = np.array(ta)
+tm = np.array(tm)
+tm = Akima1DInterpolator(rpm_plt, tm, method="makima")(rpm)
+
+# ploting the model prediction
+plt.figure()
+plt.plot(rpm,ta, label = 'actual torque')
+plt.plot(rpm,tm, label = 'nn predicted torque')
 plt.legend()
 plt.show()
