@@ -2,7 +2,7 @@
 
 ## New Version Details  
 Wave NN v2 is done. Yay. Here's what's new:
- - The biggest improvement is a change in how the torque tensor is built from a concatenation approach to the pre-initializing a tensor and populating it. This change in approach reduced optimizer times for a 1.63 million case DOE table from around 11 hours to 25 minutes. Specifically, calculating ranking parameters and final rank for all the torque curves went from 8 hours to under 5 seconds :).
+ - The biggest improvement is a change in how the torque tensor is built. It's changed from a concatenation based approach to the pre-initializing a tensor and populating it. This change in approach reduced optimizer times for a 1.63 million case DOE table from around 11 hours to 25 minutes. Specifically, calculating ranking parameters and final rank for all the torque curves went from 8 hours to under 5 seconds :).
    
  - The model class and convergence function are now in their own program, this cleans up the training loop and helps with readability and redundancy in the program.
    
